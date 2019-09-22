@@ -7,6 +7,7 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type Handler interface {
@@ -77,6 +78,28 @@ func connHandle(session *TCPSession) {
 	//kaConn.SetKeepAliveIdle(30*time.Second)
 	//kaConn.SetKeepAliveCount(4)
 	//kaConn.SetKeepAliveInterval(5*time.Second)
+
+	tcp, _ := session.conn.(*net.TCPConn)
+	// SetKeepAlive sets whether the operating system should send
+	// keepalive messages on the connection.
+	tcp.SetKeepAlive(true)
+	// SetKeepAlivePeriod sets period between keep alives.
+	// Go allows you to enable TCP keepalive using net.TCPConn's SetKeepAlive. On OSX and Linux this will cause up to 8 TCP keepalive
+	// probes to be sent at an interval of 75 seconds after a connection has been idle for 2 hours. Or in other words, Read will return
+	// an io.EOF error after 2 hours and 10 minutes (7200 + 8 * 75).
+	// Depending on your application, that may be too long of a timeout. In this case you can call SetKeepAlivePeriod. However,
+	// this method currently behaves different for different operating systems. On OSX, it will modify the idle time before probes are being sent.
+	// On Linux however, it will modify both the idle time, as well as the interval that probes are sent at. So calling SetKeepAlivePeriod with an
+	// argument of 30 seconds will cause a total timeout of 10 minutes and 30 seconds for OSX (30 + 8 * 75), but 4 minutes and
+	// 30 seconds on Linux (30 + 8 * 30).
+	// 心跳间隔时间，具体时间有待验证
+	tcp.SetKeepAlivePeriod(time.Second*30)
+	// SetNoDelay controls whether the operating system should delay
+	// packet transmission in hopes of sending fewer packets (Nagle's
+	// algorithm).  The default is true (no delay), meaning that data is
+	// sent as soon as possible after a Write.
+	// 这块看业务需求了，如果发送的都是小包，可以开启这项
+	tcp.SetNoDelay(true)
 
 	readBuff := make([]byte, session.s.maxReadLength)
 	tempBuff := make([]byte, 0)
