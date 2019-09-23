@@ -11,7 +11,8 @@ import (
 )
 
 type Handler interface {
-	ReciveMsg(session *TCPSession,msg []byte)
+	Init()
+	ReceiveMsg(session *TCPSession,msg []byte)
 	Closed(err error)
 }
 
@@ -101,6 +102,8 @@ func connHandle(session *TCPSession) {
 	// 这块看业务需求了，如果发送的都是小包，可以开启这项
 	tcp.SetNoDelay(true)
 
+	session.handler.Init()
+
 	readBuff := make([]byte, session.s.maxReadLength)
 	tempBuff := make([]byte, 0)
 	//包头数据大小
@@ -128,7 +131,7 @@ func connHandle(session *TCPSession) {
 			continue
 		}
 		//TODO 处理业务
-		session.handler.ReciveMsg(session,dataBuff)
+		session.handler.ReceiveMsg(session,dataBuff)
 		dataBuff = []byte{}
 	}
 }

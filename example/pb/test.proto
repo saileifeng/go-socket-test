@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package pb;
+//协议编号
+enum PbNum {
+    Login = 0;
+    Say = 1;
+    SayStatusConfirm = 2;
+}
+//聊天消息状态
+enum ChatMessageStatus {
+    Reached = 0;
+    Looked = 1;
+}
+//请求状态
+enum RequestStatus{
+    SUCCESS = 0;
+    FAIL = 1;
+}
+
+//登陆请求
+message C_LoginRequest{
+    string AccountID = 1;
+    string Password = 2;
+}
+//登陆应答
+message S_LoginResponse {
+    RequestStatus RequestStatus = 1;
+    string UID = 2;
+}
+
+//私聊
+message C_ChatToSomeOneRequest{
+    string TargetUID =1;
+    string Message = 2;
+}
+//私聊应答
+message S_ChatToSomeOneResponse {
+    RequestStatus RequestStatus = 1;
+    ChatMessageStatus ChatMessageStatus = 2;
+    string TargetUID = 3;
+    int64 MessageID = 4;
+
+}
+
+//客户端确认收到私聊消息
+message C_SomeOneConfirmMessageRequest{
+    ChatMessageStatus ChatMessageStatus = 1;
+    string TargetUID = 2;
+    int64 MessageID = 3;
+}
+
+//服务端通知私聊消息给某人
+message S_SomeOneReviceMessageResponse {
+    string SenderUID = 1;
+    int64 MessageID = 2;
+    string Message = 3;
+}

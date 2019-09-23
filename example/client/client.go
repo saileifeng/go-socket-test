@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"github.com/golang/protobuf/proto"
+	"github.com/saileifeng/go-socket-test/example/pb"
 	"github.com/saileifeng/go-socket-test/server"
 	"github.com/saileifeng/go-socket-test/utils"
 	"log"
@@ -42,21 +44,39 @@ func client() {
 	flag := true
 	//开始向服务器端发送 hello
 	f := func(){
-		b := []byte("hello world!")
+		//b := []byte("hello world!")
+		//
+		//bLenBytes := utils.IntToBytes(len(b))
+		//
+		//b2 := []byte("i am golang developer")
+		//
+		//
+		//
+		//bLenBytes2 := utils.IntToBytes(len(b2))
+		//
+		//
+		//w := append(bLenBytes,b[:]...)
+		//w1 := append(bLenBytes2,b2[:]...)
+		//
+		//
+		//ww := append(w,w1[:]...)
 
-		bLenBytes := utils.IntToBytes(len(b))
+		login := &pb.C_LoginRequest{AccountID:"123456",Password:"654321"}
+		loginBytes,err := proto.Marshal(login)
+		if err != nil {
+			log.Println("proto.Marshal err :",err)
+			return
+		}
 
-		b2 := []byte("i am golang developer")
+		pbNumBytes := utils.IntToBytes(int(pb.PbNum_Login))
 
-		bLenBytes2 := utils.IntToBytes(len(b2))
-
-
-		w := append(bLenBytes,b[:]...)
-		w1 := append(bLenBytes2,b2[:]...)
-
-
-		ww := append(w,w1[:]...)
-
+		w := append(pbNumBytes,loginBytes[:]...)
+		log.Println("w",w)
+		wLen := utils.IntToBytes(len(w))
+		//log.Println("wLen",wLen)
+		ww := append(wLen,w[:]...)
+		//log.Println("ww",ww)
+		//log.Println()
 		num, write_err := con.Write(ww)
 		//如果写入有问题 输出对应的错误信息
 		if write_err != nil {
@@ -71,7 +91,7 @@ func client() {
 
 	for flag{
 		//log.Println(flag)
-		time.Sleep(time.Second*10)
+		time.Sleep(time.Second*1)
 		f()
 	}
 
@@ -115,6 +135,19 @@ func connHandle(conn net.Conn,readLength,packHeader,maxBody int,flag *bool) {
 		}
 		//TODO 处理业务
 		//log.Println(string(dataBuff))
+		doMsg(dataBuff)
 		dataBuff = []byte{}
+	}
+}
+
+func doMsg(msg []byte)  {
+	switch pb.PbNum(utils.BytesToInt32(msg[:4])) {
+	case pb.PbNum_Login:
+		login := &pb.S_LoginResponse{}
+		err := proto.Unmarshal(msg[4:],login)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println(login.RequestStatus,login.UID)
 	}
 }
