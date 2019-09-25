@@ -60,15 +60,18 @@ func NewClietnConn(consulAddr,serviceName string) *grpc.ClientConn {
 
 //Registry 服务注册自定义结构体
 type Registry struct {
-	consulAddr,service string
+	consulAddr,serviceName string
 	port int
-	listener net.Listener
+	Listener net.Listener
 	Server *grpc.Server
-	register *register.ConsulRegister
+	Register *register.ConsulRegister
+	ServerAddr string
 }
+
+
 //NewRegister 创建新的服务注册
-func NewRegister(consulAddr,service string,port int) *Registry {
-	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v",port))
+func NewRegister(consulAddr,service ,ip string,port int) *Registry {
+	listener, err := net.Listen("tcp", fmt.Sprintf("%v:%v",ip,port))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -79,14 +82,14 @@ func NewRegister(consulAddr,service string,port int) *Registry {
 	}
 	log.Println("start server port :",addrs[len(addrs)-1])
 	//consul service register
-	nr := register.NewConsulRegister(consulAddr,service,port)
+	nr := register.NewConsulRegister(consulAddr,service,ip,port)
 	nr.Register()
 	//start grpc server
 	serv :=  grpc.NewServer()
 	//registe health check
 	grpc_health_v1.RegisterHealthServer(serv, &register.HealthImpl{})
 
-	return &Registry{consulAddr:consulAddr,service:service,port:port,listener:listener,Server:serv,register:nr}
+	return &Registry{consulAddr:consulAddr,serviceName:service,port:port,Listener:listener,Server:serv,Register:nr,ServerAddr:listener.Addr().String()}
 }
 //Run 启动
 func (r *Registry)Run()  {
@@ -96,11 +99,12 @@ func (r *Registry)Run()  {
 		signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL, syscall.SIGHUP, syscall.SIGQUIT)
 		<-quit
 		log.Println("do run hook")
-		r.register.Deregister()
+		err := r.Register.Deregister()
+		log.Println("Deregister",err)
 		r.Server.Stop()
 	}()
 
-	if err := r.Server.Serve(r.listener); err != nil {
+	if err := r.Server.Serve(r.Listener); err != nil {
 		panic(err)
 	}
 }

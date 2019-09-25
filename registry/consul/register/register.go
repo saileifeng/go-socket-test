@@ -35,11 +35,11 @@ func (h *HealthImpl) Watch(hcr *grpc_health_v1.HealthCheckRequest, ws grpc_healt
 
 
 // NewConsulRegister create a new consul register
-func NewConsulRegister(addr , service string,port int) *ConsulRegister {
+func NewConsulRegister(addr , service,ip string,port int) *ConsulRegister {
 	return &ConsulRegister{
 		Address: addr,
 		Service: service,
-		ServiceID:fmt.Sprintf("%v-%v-%v", service, localIP(), port),
+		ServiceID:fmt.Sprintf("%v-%v-%v", service, ip, port),
 		Tag:     []string{},
 		Port:    port,
 		DeregisterCriticalServiceAfter: time.Duration(10) * time.Second,
@@ -58,14 +58,45 @@ type ConsulRegister struct {
 	Interval                       time.Duration
 	ClientAgent						*api.Client
 }
+
+func (r *ConsulRegister) PutKV(key string,value []byte) error {
+	kv := &api.KVPair{
+		Key:   key,
+		Flags: 0,
+		Value: value,
+	}
+	_,err := r.ClientAgent.KV().Put(kv,nil)
+	//log.Println("RegistryKV wm :",wm,",err :",err)
+	return err
+}
+
+func (r *ConsulRegister) GetValue(key string) (value []byte,err error) {
+	kv,wm,err := r.ClientAgent.KV().Get(key,nil)
+	log.Println("GetValue wm :",wm,",err :",err,", kv :",kv)
+	if kv == nil {
+		return nil,err
+	}
+	return kv.Value,err
+}
+
+func (r *ConsulRegister) DelValue(key string,) error {
+	_,err := r.ClientAgent.KV().Delete(key,nil)
+	//log.Println("DelValue wm :",wm,",err :",err)
+	return err
+}
+
+
 // Deregister 注销服务
 func (r *ConsulRegister) Deregister() error {
 	log.Println("ConsulRegister Deregister")
 	if r.ClientAgent == nil {
+		log.Println("ConsulRegister Deregister1",ErrNoClientAgent)
 		return ErrNoClientAgent
 	}
 	if err := r.ClientAgent.Agent().ServiceDeregister(r.ServiceID); err != nil {
-		log.Fatal(err)
+		log.Println("ConsulRegister Deregister2",err)
+		//log.Fatal(err)
+		return err
 	}
 	log.Println("ConsulRegister Deregister nil")
 	return nil

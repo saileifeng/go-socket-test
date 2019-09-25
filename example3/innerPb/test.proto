@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package innerPb;
+
+//聊天消息状态
+enum ChatMessageStatus {
+    Reached = 0;
+    Looked = 1;
+}
+
+message Pid {
+    string Addr = 1;
+    string Id = 2;
+}
+
+message RPC_ChatToSomeOneMessageRequest{
+    Pid SenderPID = 1;
+    string Message = 2;
+    int64 MessageID = 3;
+    string SenderUID = 4;
+    string TargetUID =5;
+    Pid TargetPID = 6;
+}
+
+message RPC_ChatToSomeOneMessageResponse{
+    Pid SenderPID = 1;
+    ChatMessageStatus ChatMessageStatus = 2;
+    int64 MessageID = 3;
+    string SenderUID = 4;
+    string TargetUID =5;
+}
+
+
+service ChatService {
+    rpc ChatToSomeOne(RPC_ChatToSomeOneMessageRequest) returns (RPC_ChatToSomeOneMessageResponse);
+}

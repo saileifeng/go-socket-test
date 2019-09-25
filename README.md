@@ -1,11 +1,25 @@
 # go-socket-test
-基于tcp的简单聊天demo
+基于tcp,protobuffer3的简单聊天demo
+
+**example** 是一个简单的单服聊天demo
+
+**example3** 是一个基于consul实现服务发现的聊天服务集群,目前还未加入tcp
 
 ### 运行方式
-- **server**
-    >go run example/server/server.go --port 8888
-- **client**
-    >go run example/client/client.go --addr 127.0.0.1:8888 --maxConns 1000 --interval 1
+    
+- **example**
+    - **server**
+        >go run example/server/server.go --port 8888
+    - **client**
+        >go run example/client/client.go --addr 127.0.0.1:8888 --maxConns 1000 --interval 1
+- **example3**
+    - **consul**
+        >consul agent -dev
+    - **server**
+        >go run example3/test/remoteTest.go
+    - **server2**
+        >go run example3/test2/remoteTest.go
+
 
 ### 代码优化
 
