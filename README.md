@@ -3,7 +3,7 @@
 
 **example** 是一个简单的单服聊天demo
 
-**example3** 是一个基于consul实现服务发现的聊天服务集群,目前还未加入tcp
+**example3** 是一个基于consul实现服务发现的聊天服务集群,目前还未加入tcp聊天
 
 ### 运行方式
     
