@@ -111,7 +111,7 @@ func main() {
 	innerPb.RegisterChatServiceServer(cluster.ConsulRegistry.Server,&ChatService{})
 
 	for i:= 0; i < 100;i++  {
-		go func() {
+		go func(i int) {
 			pid :=remote.NewPid(cluster.ConsulRegistry.ServerAddr)
 			actor := NewActor(pid)
 
@@ -120,11 +120,11 @@ func main() {
 			//log.Println(actor,pid)
 			name := fmt.Sprintf("%v%v","number",i)
 			err := cluster.PutPidWithName(name,pid)
-			log.Println("PutPidWithName",err)
+			log.Println("PutPidWithName",name,pid,err)
 			//
 			//p,err := cluster.GetPidWithName(name)
 			//log.Println(p,err)
-		}()
+		}(i)
 
 	}
 
