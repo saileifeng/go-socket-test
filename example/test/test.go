@@ -2,20 +2,31 @@ package main
 
 import (
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"sync"
+	"time"
 )
 
 func main() {
 
-
+	go func() {
+		http.ListenAndServe(":9999", nil)
+	}()
 	mux := sync.Mutex{}
 	for j := 0; j < 10; j ++  {
 		go func(num int) {
-			mux.Lock()
-			log.Printf("number %v get lock",num)
-			//mux.Unlock()
+			for  {
+				mux.Lock()
+				//defer mux.Unlock()
+				log.Printf("number %v get lock",num)
+				if num != 9 {
+					mux.Unlock()
+				}
+				time.Sleep(time.Millisecond*100)
+			}
 		}(j)
 	}
 

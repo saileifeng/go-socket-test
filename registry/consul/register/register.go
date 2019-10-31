@@ -85,6 +85,11 @@ func (r *ConsulRegister) DelValue(key string,) error {
 	return err
 }
 
+func (r *ConsulRegister) DelTree(key string,) error {
+	_,err := r.ClientAgent.KV().DeleteTree(key,nil)
+	//log.Println("DelValue wm :",wm,",err :",err)
+	return err
+}
 
 // Deregister 注销服务
 func (r *ConsulRegister) Deregister() error {

@@ -119,7 +119,7 @@ func main() {
 
 			//log.Println(actor,pid)
 			name := fmt.Sprintf("%v%v","number",i)
-			err := cluster.PutPidWithName(name,pid)
+			err := cluster.PutPidWithName(name+""+pid.Addr,pid)
 			log.Println("PutPidWithName",name,pid,err)
 			//
 			//p,err := cluster.GetPidWithName(name)
@@ -127,8 +127,7 @@ func main() {
 		}(i)
 
 	}
-
-
+	log.Println("put finished")
 
 	cluster.Run()
 }

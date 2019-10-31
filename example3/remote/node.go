@@ -134,6 +134,11 @@ func (remote *Remote) PutPidWithName(name string,pid *Pid) error {
 	return remote.ConsulRegistry.Register.PutKV(name,pidBytes)
 }
 
+func (remote *Remote)DelAllPid(key string) error {
+	return remote.ConsulRegistry.Register.DelTree(key)
+}
+
+
 //GetPidWithName 获取rpc全局pid
 func (remote *Remote) GetPidWithName(name string) (*Pid,error) {
 	pidBytes,err :=remote.ConsulRegistry.Register.GetValue(name)
